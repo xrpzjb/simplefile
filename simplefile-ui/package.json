@@ -1,0 +1,63 @@
+{
+  "name": "ruoyi",
+  "version": "3.8.8",
+  "description": "simpleFile",
+  "author": "simplefile云盘",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:prod": "vite build",
+    "build:stage": "vite build --mode staging",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/y_project/RuoYi-Vue.git"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "2.3.1",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-regular-svg-icons": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "@highlightjs/vue-plugin": "^2.1.0",
+    "@imengyu/vue3-context-menu": "^1.4.2",
+    "@liripeng/vue-audio-player": "^2.0.4",
+    "@vue-office/docx": "^1.6.2",
+    "@vue-office/excel": "^1.7.11",
+    "@vue-office/pdf": "^2.0.9",
+    "@vueup/vue-quill": "1.2.0",
+    "@vueuse/core": "10.11.0",
+    "axios": "0.28.1",
+    "echarts": "5.5.1",
+    "element-plus": "2.7.6",
+    "file-saver": "2.0.5",
+    "fuse.js": "6.6.2",
+    "highlight.js": "^11.11.1",
+    "highlightjs-line-numbers.js": "^2.9.0",
+    "js-cookie": "3.0.5",
+    "jsencrypt": "3.3.2",
+    "nprogress": "0.2.0",
+    "pdfjs-dist": "^4.9.155",
+    "pinia": "2.1.7",
+    "prismjs": "^1.29.0",
+    "vue": "3.4.31",
+    "vue-cropper": "1.1.1",
+    "vue-demi": "^0.14.10",
+    "vue-router": "4.4.0",
+    "vue3-menus": "^1.1.2",
+    "yarn": "^1.22.22"
+  },
+  "devDependencies": {
+    "@types/prismjs": "^1.26.5",
+    "@vitejs/plugin-vue": "5.0.5",
+    "sass": "1.77.5",
+    "unplugin-auto-import": "0.17.6",
+    "unplugin-vue-setup-extend-plus": "1.0.1",
+    "vite": "5.3.2",
+    "vite-plugin-compression": "0.5.1",
+    "vite-plugin-style-import": "^2.0.0",
+    "vite-plugin-svg-icons": "2.0.1"
+  }
+}

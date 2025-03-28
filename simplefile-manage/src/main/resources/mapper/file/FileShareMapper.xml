@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.simplefile.file.mapper.FileShareMapper">
+    
+    <resultMap type="FileShare" id="FileShareResult">
+        <result property="shareId"    column="share_id"    />
+        <result property="fileId"    column="file_id"    />
+        <result property="shareCode"    column="share_code"    />
+        <result property="shareEncryType"    column="share_encry_type"    />
+        <result property="shareEncryCode"    column="share_encry_code"    />
+        <result property="shareTime"    column="share_time"    />
+        <result property="visitNum"    column="visit_num"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectFileShareVo">
+        select share_id, file_id, share_code, share_encry_type, share_encry_code, share_time, visit_num, del_flag, create_by, create_time, update_by, update_time from file_share
+    </sql>
+
+    <select id="selectFileShareList" parameterType="FileShare" resultMap="FileShareResult">
+        <include refid="selectFileShareVo"/>
+        <where>
+            <if test="fileId != null "> and file_id = #{fileId}</if>
+            <if test="shareCode != null "> and share_code = #{shareCode}</if>
+            <if test="shareEncryType != null "> and share_encry_type = #{shareEncryType}</if>
+            <if test="shareEncryCode != null  and shareEncryCode != ''"> and share_encry_code = #{shareEncryCode}</if>
+            <if test="shareTime != null "> and share_time = #{shareTime}</if>
+            <if test="visitNum != null "> and visit_num = #{visitNum}</if>
+        </where>
+    </select>
+    
+    <select id="selectFileShareByShareId" parameterType="Long" resultMap="FileShareResult">
+        <include refid="selectFileShareVo"/>
+        where share_id = #{shareId}
+    </select>
+
+    <insert id="insertFileShare" parameterType="FileShare">
+        insert into file_share
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="shareId != null">share_id,</if>
+            <if test="fileId != null">file_id,</if>
+            <if test="shareCode != null">share_code,</if>
+            <if test="shareEncryType != null">share_encry_type,</if>
+            <if test="shareEncryCode != null">share_encry_code,</if>
+            <if test="shareTime != null">share_time,</if>
+            <if test="visitNum != null">visit_num,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="shareId != null">#{shareId},</if>
+            <if test="fileId != null">#{fileId},</if>
+            <if test="shareCode != null">#{shareCode},</if>
+            <if test="shareEncryType != null">#{shareEncryType},</if>
+            <if test="shareEncryCode != null">#{shareEncryCode},</if>
+            <if test="shareTime != null">#{shareTime},</if>
+            <if test="visitNum != null">#{visitNum},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFileShare" parameterType="FileShare">
+        update file_share
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="shareEncryType != null">share_encry_type = #{shareEncryType},</if>
+            <if test="shareEncryCode != null">share_encry_code = #{shareEncryCode},</if>
+            <if test="shareCode != null">share_code = #{shareCode},</if>
+            <if test="shareTime != null">share_time = #{shareTime},</if>
+            <if test="visitNum != null">visit_num = #{visitNum},</if>
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where share_id = #{shareId}
+    </update>
+
+    <delete id="deleteFileShareByShareId" parameterType="Long">
+        delete from file_share where share_id = #{shareId}
+    </delete>
+
+    <delete id="deleteFileShareByShareIds" parameterType="String">
+        delete from file_share where share_id in 
+        <foreach item="shareId" collection="array" open="(" separator="," close=")">
+            #{shareId}
+        </foreach>
+    </delete>
+</mapper>

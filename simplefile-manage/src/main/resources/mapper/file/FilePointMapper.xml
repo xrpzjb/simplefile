@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.simplefile.file.mapper.FilePointMapper">
+    
+    <resultMap type="FilePoint" id="FilePointResult">
+        <result property="pointId"    column="point_id"    />
+        <result property="systemPath"    column="system_path"    />
+        <result property="pointPath"    column="point_path"    />
+        <result property="scannTime"    column="scann_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectFilePointVo">
+        select point_id, system_path, point_path, scann_time, del_flag, create_by, create_time, update_by, update_time from file_point
+    </sql>
+
+    <select id="selectFilePointList" parameterType="FilePoint" resultMap="FilePointResult">
+        <include refid="selectFilePointVo"/>
+        <where>  
+            <if test="systemPath != null  and systemPath != ''"> and system_path = #{systemPath}</if>
+            <if test="pointPath != null  and pointPath != ''"> and point_path = #{pointPath}</if>
+            <if test="scannTime != null "> and scann_time = #{scannTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFilePointByPointId" parameterType="Long" resultMap="FilePointResult">
+        <include refid="selectFilePointVo"/>
+        where point_id = #{pointId}
+    </select>
+
+    <insert id="insertFilePoint" parameterType="FilePoint">
+        insert into file_point
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pointId != null">point_id,</if>
+            <if test="systemPath != null">system_path,</if>
+            <if test="pointPath != null">point_path,</if>
+            <if test="scannTime != null">scann_time,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="pointId != null">#{pointId},</if>
+            <if test="systemPath != null">#{systemPath},</if>
+            <if test="pointPath != null">#{pointPath},</if>
+            <if test="scannTime != null">#{scannTime},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFilePoint" parameterType="FilePoint">
+        update file_point
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="systemPath != null">system_path = #{systemPath},</if>
+            <if test="pointPath != null">point_path = #{pointPath},</if>
+            <if test="scannTime != null">scann_time = #{scannTime},</if>
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where point_id = #{pointId}
+    </update>
+
+    <delete id="deleteFilePointByPointId" parameterType="Long">
+        delete from file_point where point_id = #{pointId}
+    </delete>
+
+    <delete id="deleteFilePointByPointIds" parameterType="String">
+        delete from file_point where point_id in 
+        <foreach item="pointId" collection="array" open="(" separator="," close=")">
+            #{pointId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.simplefile.file.mapper.FileInfoMapper">
+
+    <resultMap type="FileInfo" id="FileInfoResult">
+        <result property="fileId"    column="file_id"    />
+        <result property="preCode"    column="pre_code"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="name"    column="name"    />
+        <result property="path"    column="path"    />
+        <result property="pointPath"    column="point_path"    />
+        <result property="fileType"    column="file_type"    />
+        <result property="dirBol"    column="dir_bol"    />
+        <result property="fileSize"    column="file_size"    />
+        <result property="childCount"    column="child_count"    />
+        <result property="md5Value"    column="md5_value"    />
+        <result property="status"    column="status"    />
+        <result property="shareStatus"    column="share_status"    />
+        <result property="shareEncryType"    column="share_encry_type"    />
+        <result property="shareEncryCode"    column="share_encry_code"    />
+        <result property="shareTime"    column="share_time"    />
+        <result property="visitNum"    column="visit_num"    />
+        <result property="fileUpdateTime"    column="file_update_time"    />
+        <result property="fileUseTime"    column="file_use_time"    />
+        <result property="hide"    column="hide"    />
+        <result property="thumbnail"    column="thumbnail"    />
+        <result property="thumbnailPath"    column="thumbnail_path"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="recycleTime"    column="recycle_time"    />
+
+
+    </resultMap>
+
+    <sql id="selectFileInfoVo">
+        select file_id, hide, thumbnail, recycle_time, thumbnail_path, pre_code, parent_id, name, path, point_path, file_type, dir_bol, file_size, child_count, md5_value, status, share_status, share_encry_type, share_encry_code, share_time, visit_num, file_update_time, file_use_time, del_flag, create_by, create_time, update_by, update_time from file_info
+    </sql>
+
+    <select id="selectFileInfoList" parameterType="FileInfo" resultMap="FileInfoResult">
+        <include refid="selectFileInfoVo"/>
+        <where>
+            <if test="fileInfo.preCode != null  and fileInfo.preCode != ''"> and pre_code = #{fileInfo.preCode}</if>
+            <if test="fileInfo.parentId != null "> and parent_id = #{fileInfo.parentId}</if>
+            <if test="fileInfo.fileId != null "> and file_id = #{fileInfo.fileId}</if>
+            <if test="fileInfo.name != null  and fileInfo.name != ''"> and name like concat('%', #{fileInfo.name}, '%')</if>
+            <if test="fileInfo.path != null  and fileInfo.path != ''"> and path = #{fileInfo.path}</if>
+            <if test="fileInfo.thumbnailPath != null  and fileInfo.thumbnailPath != ''"> and thumbnail_path = #{fileInfo.thumbnailPath}</if>
+            <if test="fileInfo.pointPath != null  and fileInfo.pointPath != ''"> and point_path = #{fileInfo.pointPath}</if>
+            <if test="fileInfo.fileType != null "> and file_type = #{fileInfo.fileType}</if>
+            <if test="fileInfo.thumbnail != null "> and thumbnail = #{fileInfo.thumbnail}</if>
+            <if test="fileInfo.hide != null "> and hide = #{fileInfo.hide}</if>
+            <if test="fileInfo.dirBol != null "> and dir_bol = #{fileInfo.dirBol}</if>
+            <if test="fileInfo.fileSize != null "> and file_size = #{fileInfo.fileSize}</if>
+            <if test="fileInfo.childCount != null "> and child_count = #{fileInfo.childCount}</if>
+            <if test="fileInfo.md5Value != null  and md5Value != ''"> and md5_value = #{fileInfo.md5Value}</if>
+            <if test="fileInfo.status != null "> and status = #{fileInfo.status}</if>
+            <if test="fileInfo.shareStatus != null "> and share_status = #{fileInfo.shareStatus}</if>
+            <if test="fileInfo.shareEncryType != null "> and share_encry_type = #{fileInfo.shareEncryType}</if>
+            <if test="fileInfo.shareEncryCode != null  and fileInfo.shareEncryCode != ''"> and share_encry_code = #{fileInfo.shareEncryCode}</if>
+            <if test="fileInfo.shareTime != null "> and share_time = #{fileInfo.shareTime}</if>
+            <if test="fileInfo.visitNum != null "> and visit_num = #{fileInfo.visitNum}</if>
+            <if test="fileInfo.fileUpdateTime != null "> and file_update_time = #{fileInfo.fileUpdateTime}</if>
+        </where>
+    </select>
+
+    <select id="selectRecoveryFileInfoList" parameterType="FileInfo" resultMap="FileInfoResult">
+        <include refid="selectFileInfoVo"/>
+        <where>
+            <if test="fileInfo.preCode != null  and fileInfo.preCode != ''"> and pre_code = #{fileInfo.preCode}</if>
+            <if test="fileInfo.parentId != null "> and parent_id = #{fileInfo.parentId}</if>
+            <if test="fileInfo.name != null  and fileInfo.name != ''"> and name like concat('%', #{fileInfo.name}, '%')</if>
+            <if test="fileInfo.path != null  and fileInfo.path != ''"> and path = #{fileInfo.path}</if>
+            <if test="fileInfo.thumbnailPath != null  and fileInfo.thumbnailPath != ''"> and thumbnail_path = #{fileInfo.thumbnailPath}</if>
+            <if test="fileInfo.pointPath != null  and fileInfo.pointPath != ''"> and point_path = #{fileInfo.pointPath}</if>
+            <if test="fileInfo.fileType != null "> and file_type = #{fileInfo.fileType}</if>
+            <if test="fileInfo.thumbnail != null "> and thumbnail = #{fileInfo.thumbnail}</if>
+            <if test="fileInfo.hide != null "> and hide = #{fileInfo.hide}</if>
+            <if test="fileInfo.dirBol != null "> and dir_bol = #{fileInfo.dirBol}</if>
+            <if test="fileInfo.fileSize != null "> and file_size = #{fileInfo.fileSize}</if>
+            <if test="fileInfo.childCount != null "> and child_count = #{fileInfo.childCount}</if>
+            <if test="fileInfo.md5Value != null  and md5Value != ''"> and md5_value = #{fileInfo.md5Value}</if>
+            <if test="fileInfo.status != null "> and status = #{fileInfo.status}</if>
+            <if test="fileInfo.shareStatus != null "> and share_status = #{fileInfo.shareStatus}</if>
+            <if test="fileInfo.shareEncryType != null "> and share_encry_type = #{fileInfo.shareEncryType}</if>
+            <if test="fileInfo.shareEncryCode != null  and fileInfo.shareEncryCode != ''"> and share_encry_code = #{fileInfo.shareEncryCode}</if>
+            <if test="fileInfo.shareTime != null "> and share_time = #{fileInfo.shareTime}</if>
+            <if test="fileInfo.visitNum != null "> and visit_num = #{fileInfo.visitNum}</if>
+            <if test="fileInfo.fileUpdateTime != null "> and file_update_time = #{fileInfo.fileUpdateTime}</if>
+            and del_flag = '2'
+            order by recycle_time desc
+        </where>
+    </select>
+
+    <select id="selectFileInfoByFileId" parameterType="Long" resultMap="FileInfoResult">
+        <include refid="selectFileInfoVo"/>
+        where file_id = #{fileId}
+    </select>
+
+    <insert id="insertFileInfo" parameterType="FileInfo">
+        insert into file_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="fileId != null">file_id,</if>
+            <if test="preCode != null">pre_code,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="path != null">path,</if>
+            <if test="pointPath != null">point_path,</if>
+            <if test="fileType != null">file_type,</if>
+            <if test="dirBol != null">dir_bol,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="childCount != null">child_count,</if>
+            <if test="md5Value != null">md5_value,</if>
+            <if test="status != null">status,</if>
+            <if test="shareStatus != null">share_status,</if>
+            <if test="shareEncryType != null">share_encry_type,</if>
+            <if test="shareEncryCode != null">share_encry_code,</if>
+            <if test="shareTime != null">share_time,</if>
+            <if test="visitNum != null">visit_num,</if>
+            <if test="fileUpdateTime != null">file_update_time,</if>
+            <if test="recycleTime != null">recycle_time,</if>
+            <if test="fileUseTime != null">file_use_time,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="hide != null">hide,</if>
+            <if test="thumbnail != null">thumbnail,</if>
+            <if test="thumbnailPath != null">thumbnail_path,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="fileId != null">#{fileId},</if>
+            <if test="preCode != null">#{preCode},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="path != null">#{path},</if>
+            <if test="pointPath != null">#{pointPath},</if>
+            <if test="fileType != null">#{fileType},</if>
+            <if test="dirBol != null">#{dirBol},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="childCount != null">#{childCount},</if>
+            <if test="md5Value != null">#{md5Value},</if>
+            <if test="status != null">#{status},</if>
+            <if test="shareStatus != null">#{shareStatus},</if>
+            <if test="shareEncryType != null">#{shareEncryType},</if>
+            <if test="shareEncryCode != null">#{shareEncryCode},</if>
+            <if test="shareTime != null">#{shareTime},</if>
+            <if test="visitNum != null">#{visitNum},</if>
+            <if test="fileUpdateTime != null">#{fileUpdateTime},</if>
+            <if test="recycleTime != null">#{recycleTime},</if>
+            <if test="fileUseTime != null">#{fileUseTime},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="hide != null">#{hide},</if>
+            <if test="thumbnail != null">#{thumbnail},</if>
+            <if test="thumbnailPath != null">#{thumbnailPath},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFileInfo" parameterType="FileInfo">
+        update file_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="preCode != null">pre_code = #{preCode},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="path != null">path = #{path},</if>
+            <if test="pointPath != null">point_path = #{pointPath},</if>
+            <if test="fileType != null">file_type = #{fileType},</if>
+            <if test="dirBol != null">dir_bol = #{dirBol},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="childCount != null">child_count = #{childCount},</if>
+            <if test="md5Value != null">md5_value = #{md5Value},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="shareStatus != null">share_status = #{shareStatus},</if>
+            <if test="shareEncryType != null">share_encry_type = #{shareEncryType},</if>
+            <if test="shareEncryCode != null">share_encry_code = #{shareEncryCode},</if>
+            <if test="shareTime != null">share_time = #{shareTime},</if>
+            <if test="visitNum != null">visit_num = #{visitNum},</if>
+            <if test="fileUpdateTime != null">file_update_time = #{fileUpdateTime},</if>
+            <if test="recycleTime != null">recycle_time = #{recycleTime},</if>
+            <if test="fileUseTime != null">file_use_time = #{fileUseTime},</if>
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="hide != null">hide = #{hide},</if>
+            <if test="thumbnail != null">thumbnail = #{thumbnail},</if>
+            <if test="thumbnailPath != null">thumbnail_path = #{thumbnailPath},</if>
+        </trim>
+        where file_id = #{fileId}
+    </update>
+
+    <update id="deleteFileInfoByFileId" parameterType="Long">
+        update file_info set hide = true, recycle_time = now(),recycle_bol = true,recycle_level=1 where file_id = #{fileId}
+    </update>
+
+    <delete id="deleteWlFileInfoByFileIds">
+        delete from file_info where file_id  = #{fileId}
+    </delete>
+
+    <delete id="deleteWlFileInfoByPointPath">
+        delete from file_info where point_path like concat(#{path}, '%')
+    </delete>
+
+    <delete id="deleteWlFileInfoByPath">
+        delete from file_info where path like concat(#{path}, '%')
+    </delete>
+
+    <delete id="deleteFileInfoByFileIds" parameterType="String">
+        delete from file_info where file_id in
+        <foreach item="fileId" collection="array" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+    </delete>
+
+    <select id="getRecycleFileList" resultType="FileInfo">
+        SELECT
+            *
+        FROM
+            file_info
+        WHERE
+            recycle_bol = 1
+        <if test="recycleTime != null">
+          AND recycle_time <![CDATA[ < ]]> #{recycleTime}
+        </if>
+        ORDER BY
+            recycle_time DESC
+    </select>
+</mapper>
