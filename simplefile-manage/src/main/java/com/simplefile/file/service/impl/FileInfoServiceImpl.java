@@ -735,7 +735,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         newDirFile.setFileType(FileTypeEnum.DIR.getDataValue());
         newDirFile.setDirBol(true);
         newDirFile.setChildCount(0);
-        newDirFile.setParentId(fileInfo.getParentId());
+        newDirFile.setParentId(fileInfo.getFileId());
         newDirFile.setCreateTime(new Date());
         newDirFile.setName(name);
         newDirFile.setStatus(FileStatusEnum.NORMAL.getDataValue());
