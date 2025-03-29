@@ -42,19 +42,19 @@ simpleFile是一个简易本地文件网盘管理系统，在不改动物理文�
 
 ## 项目演示
 <p >    
-    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/1.png" style="width:500px">    
+    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/1.png" style="width:100%">    
 </p>
 <p >    
-    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/2.png" style="width:500px">    
+    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/2.png" style="width:100%">    
 </p>
 <p >    
-    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/3.png" style="width:500px">    
+    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/3.png" style="width:100%">    
 </p>
 <p >    
-    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/4.png" style="width:500px">    
+    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/4.png" style="width:100%">    
 </p>
 <p >    
-    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/5.png" style="width:500px">    
+    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/5.png" style="width:100%">    
 </p>
 
 ## 捐赠
