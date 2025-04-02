@@ -57,6 +57,13 @@ simpleFile是一个简易本地文件网盘管理系统，在不改动物理文�
     <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/5.png" style="width:100%">    
 </p>
 
+## 部署
+1. 下载项目源码，并解压到本地磁盘
+2. 新建数据库，执行sql/simpleFile.sql创建数据库表，并修改src/main/resources/application.yml文件中的数据源配置，将数据库地址、用户名、密码修改为实际数据库地址、用户名、密码。
+3. 前端运行yarn install，yarn dev，后台运行
+4. 默认账号oper/z123456
+5. 进入后台，添加文件映射，点击文件映射，点击全量扫描，即可使用。
+
 ## 捐赠
 
 <p >    
