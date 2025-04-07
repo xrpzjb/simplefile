@@ -191,6 +191,7 @@ public class FileController {
             FileInfo dicFileInfo = fileInfoService.getById(dirId);
             String path = null;
             String pointPath = null;
+            Long filePointId = null;
             if(dirId.equals("0")){
                 LambdaQueryWrapper<FilePoint> dirQueryWrapper = new QueryWrapper<FilePoint>().lambda();
                 dirQueryWrapper.eq(FilePoint::getPointPath, "/");
@@ -199,10 +200,12 @@ public class FileController {
                 if(filePoint != null){
                     path = filePoint.getSystemPath();
                     pointPath = filePoint.getPointPath();
+                    filePointId = filePoint.getPointId();
                 }
             }else{
                 path = dicFileInfo.getPath();
                 pointPath = dicFileInfo.getPointPath();
+                filePointId = dicFileInfo.getFilePointId();
             }
 
             // 获取文件的字节
@@ -229,6 +232,7 @@ public class FileController {
             fileInfo.setCreateTime(new Date());
             fileInfo.setUpdateTime(new Date());
             fileInfo.setFileUpdateTime(new Date());
+            fileInfo.setFilePointId(filePointId);
             fileInfo.setVisitNum(0);
             fileInfoService.save(fileInfo);
 
