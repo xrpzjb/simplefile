@@ -17,7 +17,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectFilePointVo">
-        select point_id, system_path, point_path, scann_time, del_flag, create_by, create_time, update_by, update_time from file_point
+        select point_id, system_path, point_path, scann_time, scann_status, del_flag, create_by, create_time, update_by, update_time from file_point
     </sql>
 
     <select id="selectFilePointList" parameterType="FilePoint" resultMap="FilePointResult">
@@ -26,6 +26,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="systemPath != null  and systemPath != ''"> and system_path = #{systemPath}</if>
             <if test="pointPath != null  and pointPath != ''"> and point_path = #{pointPath}</if>
             <if test="scannTime != null "> and scann_time = #{scannTime}</if>
+            <if test="scannStatus != null "> and scann_status = #{scannStatus}</if>
         </where>
     </select>
     
@@ -41,6 +42,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="systemPath != null">system_path,</if>
             <if test="pointPath != null">point_path,</if>
             <if test="scannTime != null">scann_time,</if>
+            <if test="scannStatus != null">scann_status,</if>
             <if test="delFlag != null and delFlag != ''">del_flag,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
@@ -52,6 +54,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="systemPath != null">#{systemPath},</if>
             <if test="pointPath != null">#{pointPath},</if>
             <if test="scannTime != null">#{scannTime},</if>
+            <if test="scannStatus != null">#{scannStatus},</if>
             <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
@@ -66,6 +69,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="systemPath != null">system_path = #{systemPath},</if>
             <if test="pointPath != null">point_path = #{pointPath},</if>
             <if test="scannTime != null">scann_time = #{scannTime},</if>
+            <if test="scannStatus != null">scann_status = #{scannStatus},</if>
             <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>

@@ -461,6 +461,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         fileInfo.setParentId(dirFileInfo.getFileId());
         fileInfo.setPointPath(dirFileInfo.getPointPath() + "/" + fileInfo.getName());
         fileInfo.setPath(dirFileInfo.getPath() + "/" + fileInfo.getName());
+        fileInfo.setFilePointId(dirFileInfo.getFilePointId());
         updateById(fileInfo);
 
         String newPath = fileInfo.getPath();
@@ -736,6 +737,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         newDirFile.setDirBol(true);
         newDirFile.setChildCount(0);
         newDirFile.setParentId(fileInfo.getFileId());
+        newDirFile.setFilePointId(fileInfo.getFilePointId());
         newDirFile.setCreateTime(new Date());
         newDirFile.setName(name);
         newDirFile.setStatus(FileStatusEnum.NORMAL.getDataValue());
