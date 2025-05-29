@@ -216,6 +216,7 @@ function pathHandleScannAll(row){
   proxy.$modal.confirm('是否确认进行全量文件扫描路径"' + row.systemPath + '"的数据项？[全部重新进行扫描]').then(function() {
     pointScannAll(row.pointId).then(response => {
       proxy.$modal.msgSuccess("操作成功，等待后台扫描完成");
+      getPathList();
     });
   }).then(() => {
   }).catch(() => {});
@@ -224,6 +225,7 @@ function pathHandleScannUpdate(row){
   proxy.$modal.confirm('是否确认进行增量文件扫描路径"' + row.systemPath + '"的数据项？[扫描新增或者修改的文件]').then(function() {
     pointScannUpdate(row.pointId).then(response => {
       proxy.$modal.msgSuccess("操作成功，等待后台扫描完成");
+      getPathList();
     });
   }).then(() => {
   }).catch(() => {});
