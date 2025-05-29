@@ -727,8 +727,8 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             }
         }
 
-        String path = fileInfo.getPath().substring(0, fileInfo.getPath().lastIndexOf("/"));
-        String pointPath = fileInfo.getPointPath().substring(0, fileInfo.getPointPath().lastIndexOf("/"));
+        String path = fileInfo.getPath();
+        String pointPath = fileInfo.getPointPath();
 
         FileInfo newDirFile = new FileInfo();
         newDirFile.setFileSize(0L);
