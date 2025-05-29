@@ -29,6 +29,8 @@ public class GuavaCommonLocalCache {
     public static final String KEY_SHARE_ID_ENCRY = "KEY_SHARE_ID_ENCRY";
     /** 分享文件id临时替换码 */
     public static final String KEY_SHARE_ID_TOKEN = "KEY_SHARE_ID_TOKEN";
+    /** 用户文件路径 */
+    public static final String KEY_USER_FILE_POINT  = "KEY_USER_FILE_POINT";
 
 
 //    @Value("${token.expireTime}")
@@ -174,6 +176,20 @@ public class GuavaCommonLocalCache {
             .recordStats()
             .build();
 
+    /**
+     * 记住用户的上一次浏览文件的位置[不过期]
+     */
+    private static Cache<String, Object> userLastPositionCache = CacheBuilder.newBuilder()
+            //设置缓存初始大小，应该合理设置，后续会扩容
+            .initialCapacity(5)
+            //最大值
+            .maximumSize(100)
+            //并发数设置
+            .concurrencyLevel(5)
+            //统计缓存命中率
+            .recordStats()
+            .build();
+
     public static Cache<String, Object> getCacheObject(String cacheKey){
         switch (cacheKey){
             case KEY_LOGIN_TOKEN:
@@ -194,6 +210,8 @@ public class GuavaCommonLocalCache {
                 return shareIdEncryCache;
             case KEY_SHARE_ID_TOKEN:
                 return shareIdTokenCache;
+            case KEY_USER_FILE_POINT:
+                return userLastPositionCache;
             default:
                 return null;
         }
