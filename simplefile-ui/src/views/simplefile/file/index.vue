@@ -304,7 +304,6 @@
           auto-upload="true"
           :on-success="uploadSuccess"
           :on-error="uploadError"
-          :limit="3"
       >
         <el-button type="primary">选择文件</el-button>
         <template #tip>
