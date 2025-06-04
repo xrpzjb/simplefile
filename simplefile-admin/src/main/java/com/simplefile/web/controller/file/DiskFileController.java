@@ -1,11 +1,13 @@
 package com.simplefile.web.controller.file;
 
 import com.aspose.words.Document;
+import com.simplefile.common.cache.GuavaCommonLocalCache;
 import com.simplefile.common.core.domain.AjaxResult;
 
 import com.simplefile.common.file.DiskFile;
 import com.simplefile.common.file.DiskFileUtil;
 import com.simplefile.common.file.DiskTreeNode;
+import com.simplefile.common.utils.SecurityUtils;
 import com.simplefile.common.utils.file.FileUtils;
 import com.simplefile.file.domain.FileInfo;
 import com.simplefile.file.domain.FileShare;
@@ -59,8 +61,18 @@ public class DiskFileController {
     @PostMapping("/list")
     public AjaxResult list(@RequestBody DiskFileListDto diskFileListRequest)
     {
+        Long userId = SecurityUtils.getUserId();
+        if(diskFileListRequest.getDirId() == null){
+            Object cacheObject = GuavaCommonLocalCache.getCacheObject(GuavaCommonLocalCache.KEY_USER_FILE_POINT, userId.toString());
+            if(cacheObject != null){
+                diskFileListRequest.setDirId(cacheObject.toString());
+            }
+        }
         diskFileListRequest.setRecycleBol(false);
         DiskFileDataVo diskFileList = fileInfoService.getDiskFileList(diskFileListRequest);
+        if(diskFileListRequest.getDirId() != null){
+            GuavaCommonLocalCache.setCacheObject(GuavaCommonLocalCache.KEY_USER_FILE_POINT, userId.toString(), diskFileListRequest.getDirId());
+        }
         return AjaxResult.success(diskFileList);
     }
 
