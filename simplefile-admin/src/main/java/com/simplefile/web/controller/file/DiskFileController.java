@@ -62,15 +62,25 @@ public class DiskFileController {
     public AjaxResult list(@RequestBody DiskFileListDto diskFileListRequest)
     {
         Long userId = SecurityUtils.getUserId();
-        if(diskFileListRequest.getDirId() == null){
+        // 1.判断是默认进来，还是手动选择个人空间进来，设置选择个人空间
+        Boolean readCachePanss = false;
+        if(diskFileListRequest.getDirId() == null && diskFileListRequest.getSourceType() == 0){
+            // 这是默认进来读取缓存
+            readCachePanss = true;
+        }
+        if(diskFileListRequest.getDirId() == null && diskFileListRequest.getSourceType() == 1){
+            // 主动选择个人空间，不读取缓存
+        }
+        if(readCachePanss){
             Object cacheObject = GuavaCommonLocalCache.getCacheObject(GuavaCommonLocalCache.KEY_USER_FILE_POINT, userId.toString());
-            if(cacheObject != null){
+            if(cacheObject != null && !cacheObject.toString().equals("0")){
                 diskFileListRequest.setDirId(cacheObject.toString());
             }
         }
         diskFileListRequest.setRecycleBol(false);
         DiskFileDataVo diskFileList = fileInfoService.getDiskFileList(diskFileListRequest);
-        if(diskFileListRequest.getDirId() != null){
+        if(diskFileListRequest.getDirId() != null || (diskFileListRequest.getDirId() == null && diskFileListRequest.getSourceType() == 1)){
+            diskFileListRequest.setDirId("0");
             GuavaCommonLocalCache.setCacheObject(GuavaCommonLocalCache.KEY_USER_FILE_POINT, userId.toString(), diskFileListRequest.getDirId());
         }
         return AjaxResult.success(diskFileList);

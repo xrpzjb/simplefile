@@ -837,8 +837,10 @@ const sortedData = computed(() => {
 
 // 选择目录处理
 function handleSelPath(item) {
+  queryParams.value.sourceType = 0;
   if (item == 0) {
     queryParams.value.dirId = null;
+    queryParams.value.sourceType = 1;
   } else {
     queryParams.value.dirId = item.id;
     queryParams.value.filePath = item.filePath;

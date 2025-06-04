@@ -58,4 +58,10 @@ public class DiskFileListDto {
      */
     private Integer pageSize = 10000;
 
+    /**
+     * 来源类型
+     * sourceType == 1 选择个人空间
+     */
+    private Integer sourceType = 0;
+
 }

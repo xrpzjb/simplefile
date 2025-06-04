@@ -33,7 +33,7 @@ public class FilePoint extends BaseEntity
     @Excel(name = "扫描时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date scannTime;
 
-    /** 扫描状态（0代表未扫描 1代表扫描中 2代表扫描完成） */
+        /** 扫描状态（0代表未扫描 1代表扫描中 2代表扫描完成） */
     private Integer scannStatus;
 
     /** 删除标志（0代表存在 2代表删除） */
