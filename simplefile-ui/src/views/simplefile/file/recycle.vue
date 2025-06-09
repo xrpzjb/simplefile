@@ -2,7 +2,7 @@
 
   <div class="app-container home" style="z-index: 10">
 
-    <el-page-header @back="onBack">
+    <el-page-header>
       <template #breadcrumb>
         <div class="el-row">
           <div class="el-col-20">
@@ -127,7 +127,6 @@
     <el-drawer
         v-model="drawerFilePro"
         :title="drawerFileInfoNew.name"
-        :before-close="handleClose"
     >
       <el-tabs v-model="drawerTabName" class="demo-tabs" @tab-click="handleClick">
         <el-tab-pane label="预览" name="first" v-if="drawerFileInfoNew.type != '0'" style="background: #f2f2f2;padding-top: 5px;">
@@ -207,11 +206,8 @@ import {
   Message
 } from '@element-plus/icons-vue'
 import { ElMessage,ElMessageBox,ElLoading } from 'element-plus'
-import {listDept} from "@/api/system/dept.js";
-import {listRole} from "@/api/system/role.js";
-import {listNotice} from "@/api/system/notice.js";
 import RightClickMenu from "@/components/RightClickMenu"
-import {markRaw, ref} from 'vue';
+import {markRaw, ref, onMounted} from 'vue';
 
 /************************** 定义变量 ****************************/
 // 当前页面实例
@@ -412,16 +408,6 @@ function getServiceFileType(type) {
 }
 
 
-onMounted(() => {
-  // 获取窗口高度
-  tableHeight.value = (window.innerHeight - 210) + 'px';
-
-  // 监听窗口大小变化，更新窗口高度
-  window.addEventListener('resize', () => {
-    tableHeight.value = (window.innerHeight - 210) + 'px';
-  });
-});
-
 /**************************** 清空回收站 ******************************/
 
 // 清空回收站事件
@@ -524,6 +510,17 @@ getList();
 function goTarget(url) {
   window.open(url, '__blank')
 }
+
+onMounted(() => {
+  // 获取窗口高度
+  tableHeight.value = (window.innerHeight - 210) + 'px';
+
+  // 监听窗口大小变化，更新窗口高度
+  window.addEventListener('resize', () => {
+    tableHeight.value = (window.innerHeight - 210) + 'px';
+  });
+});
+
 </script>
 
 <style scoped lang="scss">

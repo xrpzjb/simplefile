@@ -2,7 +2,7 @@
   <!-- 页面主容器 -->
   <div class="app-container home" style="z-index: 10">
     <!-- 页面头部组件，包含面包屑导航、搜索框和上传按钮 -->
-    <el-page-header @back="onBack">
+    <el-page-header>
       <!-- 面包屑导航和搜索框部分 -->
       <template #breadcrumb>
         <div class="el-row">
@@ -117,7 +117,6 @@
         v-model="drawerFilePro"
         :size="drawerFileProSize"
         :title="drawerFileInfoNew.name"
-        :before-close="handleClose"
     >
       <!-- 抽屉顶部操作按钮 -->
       <div class="flex gap-2" style="position: absolute;right:25px;padding-top: 5px;z-index: 999">
@@ -222,7 +221,7 @@
     <el-dialog
         v-model="renameDialogFormVisible"
         title="文件重命名"
-        width="500" align-center="true">
+        width="500" align-center>
       <el-form >
         <el-form-item label="新文件名" label-width="140px">
           <el-input v-model="renameNewFileName" autocomplete="off" />
@@ -292,7 +291,6 @@
         v-model="uploadDialogVisible"
         title="上传文件"
         width="500"
-        :before-close="handleClose"
         align-center
     >
       <el-upload
