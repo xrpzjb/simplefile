@@ -80,7 +80,9 @@ public class DiskFileController {
         diskFileListRequest.setRecycleBol(false);
         DiskFileDataVo diskFileList = fileInfoService.getDiskFileList(diskFileListRequest);
         if(diskFileListRequest.getDirId() != null || (diskFileListRequest.getDirId() == null && diskFileListRequest.getSourceType() == 1)){
-            diskFileListRequest.setDirId("0");
+            if(diskFileListRequest.getSourceType() == 1){
+                diskFileListRequest.setDirId("0");
+            }
             GuavaCommonLocalCache.setCacheObject(GuavaCommonLocalCache.KEY_USER_FILE_POINT, userId.toString(), diskFileListRequest.getDirId());
         }
         return AjaxResult.success(diskFileList);
