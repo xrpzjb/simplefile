@@ -305,7 +305,9 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             // 2.防止重复当前扫描
             // 3.添加映射，未扫描，不主动扫描
             LambdaQueryWrapper<FileInfo> fileInfoLambdaQueryWrapper = new QueryWrapper<FileInfo>().lambda();
-            fileInfoLambdaQueryWrapper.eq(FileInfo::getParentId, 0L);
+            if(!diskFileListRequest.getRecycleBol()){
+                fileInfoLambdaQueryWrapper.eq(FileInfo::getParentId, 0L);
+            }
             fileInfoLambdaQueryWrapper.eq(FileInfo::getHide, diskFileListRequest.getHide());
             fileInfoLambdaQueryWrapper.eq(FileInfo::getRecycleBol, diskFileListRequest.getRecycleBol());
             if(StringUtils.isNotBlank(diskFileListRequest.getFileName())){

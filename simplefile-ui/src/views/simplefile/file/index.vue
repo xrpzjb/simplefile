@@ -1,5 +1,4 @@
 <template>
-  <!-- 页面主容器 -->
   <div class="app-container home" style="z-index: 10">
     <!-- 页面头部组件，包含面包屑导航、搜索框和上传按钮 -->
     <el-page-header>
