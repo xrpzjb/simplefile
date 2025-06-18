@@ -161,4 +161,10 @@ public interface IFileInfoService extends IService<FileInfo>
      * @param fileId
      */
     public void unzipFile(Long fileId);
+
+    /**
+     * 获取根目录
+     * @return
+     */
+    public FileInfo getFileInfoRoot();
 }

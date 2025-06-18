@@ -433,20 +433,20 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         if(fileInfo == null){
             throw new ServiceException("原文件错误");
         }
+        FileInfo dirFileInfo = null;
         if(dirId == 0){
             // 根目录
-            LambdaQueryWrapper<FileInfo> queryWrapper = new QueryWrapper<FileInfo>()
-                    .lambda()
-                    .eq(FileInfo::getPointPath, "/")
-                    .isNotNull(FileInfo::getPath)
-                    .last("limit 1");
-            FileInfo rootFile = getOne(queryWrapper);
+            FileInfo rootFile = getFileInfoRoot();
             if(rootFile == null){
                 throw new ServiceException("未找到根目录实际路径");
             }
-            dirId = rootFile.getFileId();
+            dirFileInfo = rootFile;
+        }else{
+            dirFileInfo = fileInfoMapper.selectById(dirId);
         }
-        FileInfo dirFileInfo = fileInfoMapper.selectById(dirId);
+        if(dirFileInfo == null){
+            throw new ServiceException("未找到目录实际路径");
+        }
 
         String oldPath = fileInfo.getPath();
 
@@ -471,7 +471,11 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         // 文件移动
         boolean mv = DiskFileUtil.mv(oldPath, newPath);
         if(!mv){
-            throw new ServiceException("文件复制失败");
+            throw new ServiceException("文件移动失败");
+        }
+        // 如果是文件夹，需要异步手动扫描
+        if(fileInfo.getDirBol()){
+            FileAsyncManager.me().execute(FileAsyncFactory.scannFile(fileInfo.getFilePointId(), dirFileInfo.getPath(), dirFileInfo.getPointPath(), 1, dirFileInfo.getFileId()));
         }
     }
 
@@ -490,21 +494,20 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         if(fileInfo == null){
             throw new ServiceException("原文件错误");
         }
+        FileInfo dirFileInfo = null;
         if(dirId == 0){
             // 根目录
-            LambdaQueryWrapper<FileInfo> queryWrapper = new QueryWrapper<FileInfo>()
-                    .lambda()
-                    .eq(FileInfo::getPointPath, "/")
-                    .isNotNull(FileInfo::getPath)
-                    .last("limit 1");
-            FileInfo rootFile = getOne(queryWrapper);
+            FileInfo rootFile = getFileInfoRoot();
             if(rootFile == null){
                 throw new ServiceException("未找到根目录实际路径");
             }
-            dirId = rootFile.getFileId();
+            dirFileInfo = rootFile;
+        }else{
+            dirFileInfo = fileInfoMapper.selectById(dirId);
         }
-        FileInfo dirFileInfo = fileInfoMapper.selectById(dirId);
-
+        if(dirFileInfo == null){
+            throw new ServiceException("未找到目录实际路径");
+        }
         // 判断是否存在文件
         LambdaQueryWrapper<FileInfo> repeatQueryWrapper = new LambdaQueryWrapper<FileInfo>()
                 .eq(FileInfo::getPointPath, dirFileInfo.getPointPath() + "/" + fileInfo.getName());
@@ -529,6 +532,10 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         boolean copy = DiskFileUtil.copy(oldPath, newPath);
         if(!copy){
             throw new ServiceException("文件复制失败");
+        }
+        // 如果是文件夹，需要异步手动扫描
+        if(fileInfo.getDirBol()){
+            FileAsyncManager.me().execute(FileAsyncFactory.scannFile(fileInfo.getFilePointId(), dirFileInfo.getPath(), dirFileInfo.getPointPath(), 1, dirFileInfo.getFileId()));
         }
     }
 
@@ -714,11 +721,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         FileInfo fileInfo = null;
         if(dirId == null || dirId == 0L){
             // 寻找一个parentId = 0的文件
-            fileInfo = fileInfoMapper.selectOne(new QueryWrapper<FileInfo>()
-                    .lambda()
-                    .eq(FileInfo::getParentId, 0L)
-                    .last("limit 1")
-            );
+            fileInfo = getFileInfoRoot();
             if(fileInfo == null){
                 throw new ServiceException("找不到根目录");
             }
@@ -908,6 +911,32 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             e.printStackTrace();
             throw new ServiceException("解压失败");
         }
+    }
+
+    /**
+     * 获取根目录
+     * @return
+     */
+    @Override
+    public FileInfo getFileInfoRoot() {
+        LambdaQueryWrapper<FileInfo> queryWrapper = new LambdaQueryWrapper<FileInfo>()
+                .eq(FileInfo::getParentId, 0).last("limit 1");
+        FileInfo fileInfo = fileInfoMapper.selectOne(queryWrapper);
+        if(fileInfo != null){
+            return fileInfo;
+        }
+        LambdaQueryWrapper<FilePoint> filePointLambdaQueryWrapper = new LambdaQueryWrapper<FilePoint>()
+                .eq(FilePoint::getPointPath, "/").last("limit 1");
+        FilePoint filePoint = filePointService.getOne(filePointLambdaQueryWrapper);
+        if(filePoint != null){
+            fileInfo = new FileInfo();
+            fileInfo.setFileId(0L);
+            fileInfo.setPath(filePoint.getSystemPath());
+            fileInfo.setPointPath(filePoint.getPointPath());
+            fileInfo.setFilePointId(filePoint.getPointId());
+            return fileInfo;
+        }
+        return null;
     }
 
     public void unzip(String zipFilePath, String destDirectory) throws IOException {

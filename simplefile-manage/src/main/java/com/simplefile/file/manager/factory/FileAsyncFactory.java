@@ -39,6 +39,11 @@ public class FileAsyncFactory
                 if(scanTaskMap.get(systemPath) != null){
                     return;
                 }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 synchronized (new String("scanTaskFile").intern()){
                     if(scanTaskMap.get(systemPath) != null){
                         return;
