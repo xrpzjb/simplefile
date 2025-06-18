@@ -96,4 +96,10 @@ public interface ISysWebdavFileService
      * @return 结果
      */
     public int copyFile(String sourcePath, String targetPath);
+
+    boolean updateProperties(String filePath, String propPatchXml);
+
+    void createLock(String filePath, String lockToken, String owner, String lockType, String lockScope);
+
+    boolean releaseLock(String filePath, String lockToken, String owner);
 }

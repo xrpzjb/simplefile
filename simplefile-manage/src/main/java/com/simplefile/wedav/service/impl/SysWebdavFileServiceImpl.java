@@ -60,4 +60,19 @@ public class SysWebdavFileServiceImpl implements ISysWebdavFileService {
     public int copyFile(String sourcePath, String targetPath) {
         return 0;
     }
+
+    @Override
+    public boolean updateProperties(String filePath, String propPatchXml) {
+        return false;
+    }
+
+    @Override
+    public void createLock(String filePath, String lockToken, String owner, String lockType, String lockScope) {
+
+    }
+
+    @Override
+    public boolean releaseLock(String filePath, String lockToken, String owner) {
+        return false;
+    }
 }

@@ -12,12 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * WebDAV文件Controller
@@ -30,15 +28,6 @@ public class WebdavController extends BaseController {
 
     @Resource
     private ISysWebdavFileService fileService;
-
-    // 定义WebDAV方法常量
-    private static final String METHOD_MKCOL = "MKCOL";
-    private static final String METHOD_PROPFIND = "PROPFIND";
-    private static final String METHOD_PROPPATCH = "PROPPATCH";
-    private static final String METHOD_LOCK = "LOCK";
-    private static final String METHOD_UNLOCK = "UNLOCK";
-    private static final String METHOD_MOVE = "MOVE";
-    private static final String METHOD_COPY = "COPY";
 
 
     /**
@@ -426,6 +415,169 @@ public class WebdavController extends BaseController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=PROPPATCH")
+    public void handleProppatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!isAuthenticated()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        String path = request.getPathInfo();
+        if (path == null) path = "/";
+
+        if (!hasPermission(path)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "无权限访问此路径");
+            return;
+        }
+
+        // 检查路径是否存在
+        if (!fileService.checkPathExists(path)) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        try {
+            // 解析PROPPATCH请求体（XML格式）
+            // 这里简化处理，实际需要解析XML并更新属性
+            BufferedReader reader = request.getReader();
+            StringBuilder xmlBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                xmlBuilder.append(line);
+            }
+            String propPatchXml = xmlBuilder.toString();
+
+            // 处理属性更新逻辑
+            boolean success = fileService.updateProperties(path, propPatchXml);
+
+            if (success) {
+                response.setStatus(207); // Multi-Status
+                response.getWriter().write(generatePropPatchResponse());
+            } else {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("处理PROPPATCH请求失败", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String generatePropPatchResponse() {
+        // 生成成功响应XML
+        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<D:multistatus xmlns:D=\"DAV:\">\n" +
+                "  <D:response>\n" +
+                "    <D:status>HTTP/1.1 200 OK</D:status>\n" +
+                "  </D:response>\n" +
+                "</D:multistatus>";
+    }
+
+    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=LOCK")
+    public void handleLock(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!isAuthenticated()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        String path = request.getPathInfo();
+        if (path == null) path = "/";
+
+        if (!hasPermission(path)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "无权限访问此路径");
+            return;
+        }
+
+        try {
+            // 检查路径是否存在
+            if (!fileService.checkPathExists(path)) {
+                // 如果是目录，可以允许创建锁
+                if (path.endsWith("/")) {
+                    // 创建虚拟目录锁
+                } else {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+            }
+
+            // 解析LOCK请求体，获取锁类型和范围
+            String lockType = request.getHeader("Lock-Type");
+            String lockScope = request.getHeader("Lock-Scope");
+
+            // 生成锁令牌
+            String lockToken = UUID.randomUUID().toString();
+
+            // 保存锁信息到数据库
+            fileService.createLock(path, lockToken, getCurrentUser().getUserName(), lockType, lockScope);
+
+            // 返回锁信息
+            response.setStatus(200);
+            response.setHeader("Lock-Token", "<opaquelocktoken:" + lockToken + ">");
+            response.setContentType("text/xml; charset=UTF-8");
+            response.getWriter().write(generateLockResponse(lockToken));
+        } catch (Exception e) {
+            log.error("处理LOCK请求失败", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String generateLockResponse(String lockToken) {
+        // 生成锁响应XML
+        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<D:prop xmlns:D=\"DAV:\">\n" +
+                "  <D:lockdiscovery>\n" +
+                "    <D:activelock>\n" +
+                "      <D:locktype><D:write/></D:locktype>\n" +
+                "      <D:lockscope><D:exclusive/></D:lockscope>\n" +
+                "      <D:depth>infinity</D:depth>\n" +
+                "      <D:owner>User</D:owner>\n" +
+                "      <D:timeout>Second-3600</D:timeout>\n" +
+                "      <D:locktoken>\n" +
+                "        <D:href>opaquelocktoken:" + lockToken + "</D:href>\n" +
+                "      </D:locktoken>\n" +
+                "    </D:activelock>\n" +
+                "  </D:lockdiscovery>\n" +
+                "</D:prop>";
+    }
+
+    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=UNLOCK")
+    public void handleUnlock(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!isAuthenticated()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        String path = request.getPathInfo();
+        if (path == null) path = "/";
+
+        if (!hasPermission(path)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "无权限访问此路径");
+            return;
+        }
+
+        try {
+            // 从请求头中获取锁令牌
+            String lockTokenHeader = request.getHeader("Lock-Token");
+            if (lockTokenHeader == null || !lockTokenHeader.startsWith("<opaquelocktoken:")) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "无效的锁令牌");
+                return;
+            }
+
+            String lockToken = lockTokenHeader.substring(16, lockTokenHeader.length() - 1);
+
+            // 验证锁并释放
+            boolean unlocked = fileService.releaseLock(path, lockToken, getCurrentUser().getUserName());
+
+            if (unlocked) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            } else {
+                response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED, "锁验证失败");
+            }
+        } catch (Exception e) {
+            log.error("处理UNLOCK请求失败", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * 生成PROPFIND请求的XML响应
      */
@@ -459,6 +611,8 @@ public class WebdavController extends BaseController {
         xml.append("</D:multistatus>");
         return xml.toString();
     }
+
+
 
     /**
      * 生成文件列表响应
