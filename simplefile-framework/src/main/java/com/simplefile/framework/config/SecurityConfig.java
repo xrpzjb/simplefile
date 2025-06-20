@@ -11,16 +11,24 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import com.simplefile.framework.security.filter.JwtAuthenticationTokenFilter;
 import com.simplefile.framework.security.handle.AuthenticationEntryPointImpl;
 import com.simplefile.framework.security.handle.LogoutSuccessHandlerImpl;
+
+import java.util.Arrays;
 
 /**
  * spring security配置
@@ -79,6 +87,27 @@ public class SecurityConfig
         return new ProviderManager(daoAuthenticationProvider);
     }
 
+    @Bean
+    public HttpFirewall customHttpFirewall() {
+        StrictHttpFirewall firewall = new StrictHttpFirewall();
+
+        // 使用 Arrays.asList 替代 List.of
+        firewall.setAllowedHttpMethods(
+                Arrays.asList(
+                        "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH",
+                        "PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK"
+                )
+        );
+
+        // 允许URL中的斜杠和点（WebDAV常用）
+        firewall.setAllowUrlEncodedSlash(true);
+        firewall.setAllowUrlEncodedPeriod(true);
+
+        return firewall;
+    }
+
+
+
     /**
      * anyRequest          |   匹配所有请求路径
      * access              |   SpringEl表达式结果为true时可以访问
@@ -97,18 +126,22 @@ public class SecurityConfig
     @Bean
     protected SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception
     {
-        httpSecurity
-                // 配置WebDAV路径的安全规则
-                .authorizeRequests()
-                .antMatchers("/system/webdav/**").authenticated()
-                .and()
-                .httpBasic()
-                .and()
-                .csrf().ignoringAntMatchers("/system/webdav/**")
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler);
+        //httpSecurity
+        //        .csrf(csrf -> csrf.disable())
+        //        // 配置WebDAV路径的安全规则
+        //        //.authorizeRequests()
+        //        //.antMatchers("/system/webdav/**", "/DavWWWRoot/**").authenticated()
+        //        //.and()
+        //        .httpBasic()
+        //        .and()
+        //        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        //        .and()
+        //        .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+        //        .authorizeRequests((requests) -> {
+        //            permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
+        //            requests.antMatchers( "/system/webdav/**").permitAll()
+        //                    .anyRequest().authenticated();
+        //        });
 
         // 配置其他路径的安全规则
         httpSecurity
@@ -116,19 +149,20 @@ public class SecurityConfig
                 .headers((headersCustomizer) -> {
                     headersCustomizer.cacheControl(cache -> cache.disable()).frameOptions(options -> options.sameOrigin());
                 })
+                .cors().configurationSource(corsConfigurationSource()).and()
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests((requests) -> {
                     permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
-                    requests.antMatchers("/login", "/register", "/captchaImage","/simplefile/file/**").permitAll()
+                    requests.antMatchers("/login", "/register", "/captchaImage","/simplefile/file/**", "/system/webdav/").permitAll()
                             .antMatchers(HttpMethod.GET, "/", "/*.html", "/**/*.html", "/**/*.css", "/**/*.js", "/profile/**").permitAll()
                             .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/*/api-docs", "/druid/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler))
-                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(corsFilter, JwtAuthenticationTokenFilter.class)
-                .addFilterBefore(corsFilter, LogoutFilter.class);
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                //.addFilterBefore(corsFilter, JwtAuthenticationTokenFilter.class)
+                //.addFilterBefore(corsFilter, LogoutFilter.class);
 
         return httpSecurity.build();
     }
@@ -141,4 +175,19 @@ public class SecurityConfig
     {
         return new BCryptPasswordEncoder();
     }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        // 同上 CorsFilter 中的配置
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(false);
+        // 允许浏览器扩展程序的 origin
+        config.addAllowedOriginPattern("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.setMaxAge(1800L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return (source);
+    }
+
 }

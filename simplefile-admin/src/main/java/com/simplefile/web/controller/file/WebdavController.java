@@ -1,15 +1,22 @@
 package com.simplefile.web.controller.file;
 
+import com.simplefile.common.cache.GuavaCommonLocalCache;
 import com.simplefile.common.core.controller.BaseController;
 import com.simplefile.common.core.domain.entity.SysUser;
+import com.simplefile.common.core.domain.model.WebDavLoginUser;
 import com.simplefile.common.utils.SecurityUtils;
 import com.simplefile.wedav.domain.SysWebdavFile;
 import com.simplefile.wedav.service.ISysWebdavFileService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -33,13 +40,19 @@ public class WebdavController extends BaseController {
     /**
      * 获取当前认证用户
      */
-    private SysUser getCurrentUser() {
-        try {
-            return SecurityUtils.getLoginUser().getUser();
-        } catch (Exception e) {
-            // 如果无法获取用户，返回null
+    private WebDavLoginUser getCurrentUser() {
+        HttpServletRequest request = ((ServletRequestAttributes)
+                RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+        String authHeader = request.getHeader("Authorization");
+        if(StringUtils.isBlank(authHeader)){
             return null;
         }
+        Object cacheObject = GuavaCommonLocalCache.getCacheObject(GuavaCommonLocalCache.KEY_LOGIN_TOKEN, authHeader);
+        if(cacheObject != null){
+            return (WebDavLoginUser) cacheObject;
+        }
+        return null;
     }
 
     /**
@@ -53,7 +66,7 @@ public class WebdavController extends BaseController {
      * 检查用户是否有权限访问指定路径
      */
     private boolean hasPermission(String filePath) {
-        SysUser user = getCurrentUser();
+        WebDavLoginUser user = getCurrentUser();
 
         if (user == null) {
             return false;
@@ -64,10 +77,12 @@ public class WebdavController extends BaseController {
             return true;
         }
 
-        // 普通用户只能访问自己的目录
-        // 假设用户目录为 /user/{userId}/
-        String userDir = "/user/" + user.getUserId() + "/";
-        return filePath.startsWith(userDir);
+        return true;
+
+        //// 普通用户只能访问自己的目录
+        //// 假设用户目录为 /user/{userId}/
+        //String userDir = "/user/" + user.getUserId() + "/";
+        //return filePath.startsWith(userDir);
     }
 
     /**
@@ -259,7 +274,8 @@ public class WebdavController extends BaseController {
     /**
      * 获取文件属性 (PROPFIND)
      */
-    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=PROPFIND")
+    @CrossOrigin("chrome-extension://famepaffkmmhdefbapbadnniioekdppm")
+    @RequestMapping(value = "/", method = RequestMethod.POST, headers = "X-HTTP-Method-Override=PROPFIND")
     public void handlePropfind(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
