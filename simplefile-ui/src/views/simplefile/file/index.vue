@@ -859,7 +859,7 @@ function handleInputPathBlur() {
 
 // 获取文件类型名称
 function getServiceFileType(type) {
-  return proxy.selectDictLabel(this.service_file_type, type);
+  return proxy.selectDictLabel(service_file_type.value, type);
 }
 
 // 快速下载文件
