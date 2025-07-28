@@ -58,7 +58,7 @@ public class ResourcesConfig implements WebMvcConfigurer
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         // 允许浏览器扩展程序的 origin
-        config.addAllowedOriginPattern("chrome-extension://*");
+        config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(1800L);

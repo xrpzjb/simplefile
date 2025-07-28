@@ -64,8 +64,11 @@ simpleFile是一个简易本地文件网盘管理系统，在不改动物理文�
 4. 默认账号oper/z123456
 5. 进入后台，添加文件映射，点击文件映射，点击全量扫描，即可使用。
 
-## 捐赠
+[//]: # (## 捐赠)
 
-<p >    
-    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/alipay.jpg" style="width:300px">    
-</p>
+[//]: # ()
+[//]: # (<p >    )
+
+[//]: # (    <img alt="logo" src="https://myhome999.oss-cn-hangzhou.aliyuncs.com/simplefile/alipay.jpg" style="width:300px">    )
+
+[//]: # (</p>)

@@ -5,18 +5,24 @@ import com.simplefile.common.core.controller.BaseController;
 import com.simplefile.common.core.domain.entity.SysUser;
 import com.simplefile.common.core.domain.model.WebDavLoginUser;
 import com.simplefile.common.utils.SecurityUtils;
+import com.simplefile.system.service.ISysUserService;
 import com.simplefile.wedav.domain.SysWebdavFile;
 import com.simplefile.wedav.service.ISysWebdavFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.ietf.jgss.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -30,11 +36,14 @@ import java.util.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/system/webdav")
+@RequestMapping("/")
 public class WebdavController extends BaseController {
 
     @Resource
     private ISysWebdavFileService fileService;
+
+    @Resource
+    private ISysUserService sysUserService;
 
 
     /**
@@ -44,13 +53,35 @@ public class WebdavController extends BaseController {
         HttpServletRequest request = ((ServletRequestAttributes)
                 RequestContextHolder.currentRequestAttributes())
                 .getRequest();
+        HttpServletResponse response = ((ServletRequestAttributes)
+                RequestContextHolder.currentRequestAttributes())
+                .getResponse();
         String authHeader = request.getHeader("Authorization");
-        if(StringUtils.isBlank(authHeader)){
+
+        if (authHeader == null) {
+            // 无认证头，同时支持两种认证方式
+            response.setHeader("WWW-Authenticate", "Negotiate, Basic realm= WebDAV Server");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
-        Object cacheObject = GuavaCommonLocalCache.getCacheObject(GuavaCommonLocalCache.KEY_LOGIN_TOKEN, authHeader);
-        if(cacheObject != null){
-            return (WebDavLoginUser) cacheObject;
+
+        try {
+            // 处理Negotiate认证
+            if (authHeader.startsWith("Negotiate ")) {
+                return handleNegotiate(request, response, authHeader);
+            }
+
+            // 处理Basic认证
+            if (authHeader.startsWith("Basic ")) {
+                return handleBasic(request, response, authHeader);
+            }
+
+            // 不支持的认证方式
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
         return null;
     }
@@ -84,6 +115,103 @@ public class WebdavController extends BaseController {
         //String userDir = "/user/" + user.getUserId() + "/";
         //return filePath.startsWith(userDir);
     }
+
+    private static final Oid SPNEGO_OID;
+
+    static {
+        try {
+            SPNEGO_OID = new Oid("1.3.6.1.5.5.2");
+        } catch (GSSException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * 获取文件属性 (PROPFIND)
+     */
+    @RequestMapping(method = {}, value = "/system/webdav")
+    public void webdavmain(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String method = request.getMethod();
+        WebDavLoginUser currentUser = getCurrentUser();
+        switch (method){
+            case "PROPFIND":
+                handlePropfind(request, response);
+                break;
+            case "PROPPATCH":
+                handleProppatch(request, response);
+                break;
+            case "LOCK":
+                handleLock(request, response);
+                break;
+            case "UNLOCK":
+                handleUnlock(request, response);
+                break;
+            case "MOVE":
+                moveFile(request, response);
+                break;
+            case "COPY":
+                copyFile(request, response);
+                break;
+            case "MKCOL":
+                createDirectory(request, response);
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    public WebDavLoginUser userLogin(String username, String password) throws IOException {
+        SysUser sysUser = sysUserService.selectUserByUserName(username);
+        if (sysUser == null) {
+            // 抛出认证异常
+            throw new AuthenticationCredentialsNotFoundException("Missing or invalid Basic Authorization header");
+        }
+        if (!SecurityUtils.matchesPassword(password, sysUser.getPassword())) {
+            throw new AuthenticationCredentialsNotFoundException("Missing or invalid Basic Authorization header");
+        }
+        // 验证成功
+        WebDavLoginUser loginUser = new WebDavLoginUser();
+        loginUser.setUserName(sysUser.getUserName());
+        loginUser.setUserId(sysUser.getUserId());
+        return loginUser;
+    }
+
+
+    private WebDavLoginUser handleNegotiate(HttpServletRequest request, HttpServletResponse response,
+                                 String authHeader) throws Exception {
+        // 提取令牌
+        String token = authHeader.substring("Negotiate ".length());
+        byte[] tokenBytes = Base64.getDecoder().decode(token);
+
+
+        // 认证成功，获取用户名
+
+
+
+
+
+        return null;
+    }
+
+    private WebDavLoginUser handleBasic(HttpServletRequest request, HttpServletResponse response,
+                             String authHeader) throws IOException, ServletException {
+        // 解析凭证
+        String base64Credentials = authHeader.substring("Basic ".length()).trim();
+        String credentials = new String(Base64.getDecoder().decode(base64Credentials));
+        final String[] values = credentials.split(":", 2);
+
+        WebDavLoginUser loginUser = userLogin(values[0], values[1]);
+        if(loginUser != null){
+            // 认证成功
+            request.setAttribute("authenticatedUser", values[0]);
+            request.setAttribute("authType", "basic");
+            return loginUser;
+        }
+        return null;
+    }
+
 
     /**
      * 获取文件列表 (GET)
@@ -237,7 +365,6 @@ public class WebdavController extends BaseController {
     /**
      * 创建目录 (MKCOL)
      */
-    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=MKCOL")
     public void createDirectory(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -271,11 +398,10 @@ public class WebdavController extends BaseController {
         }
     }
 
+
     /**
      * 获取文件属性 (PROPFIND)
      */
-    @CrossOrigin("chrome-extension://famepaffkmmhdefbapbadnniioekdppm")
-    @RequestMapping(value = "/", method = RequestMethod.POST, headers = "X-HTTP-Method-Override=PROPFIND")
     public void handlePropfind(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -320,7 +446,6 @@ public class WebdavController extends BaseController {
     /**
      * 移动文件或目录 (MOVE)
      */
-    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=MOVE")
     public void moveFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -375,7 +500,6 @@ public class WebdavController extends BaseController {
     /**
      * 复制文件或目录 (COPY)
      */
-    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=COPY")
     public void copyFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -431,7 +555,6 @@ public class WebdavController extends BaseController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=PROPPATCH")
     public void handleProppatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -555,7 +678,6 @@ public class WebdavController extends BaseController {
                 "</D:prop>";
     }
 
-    @RequestMapping(method = RequestMethod.POST, headers = "X-HTTP-Method-Override=UNLOCK")
     public void handleUnlock(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!isAuthenticated()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);

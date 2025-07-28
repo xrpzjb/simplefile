@@ -45,12 +45,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException
     {
-        if(request.getRequestURI().contains("system/webdav")){
+        String requestURI = request.getRequestURI();
+        if(requestURI.contains("system/webdav")){
             // 获取Authorization请求头
             String authHeader = request.getHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Basic ")) {
                 // 抛出认证异常
-                throw new AuthenticationCredentialsNotFoundException("Missing or invalid Basic Authorization header");
+                chain.doFilter(request, response);
+                return;
             }
 
             try {

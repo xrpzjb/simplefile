@@ -1,6 +1,5 @@
 package com.simplefile.framework.config;
 
-import com.simplefile.framework.config.properties.PermitAllUrlProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +9,6 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,10 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import com.simplefile.framework.config.properties.PermitAllUrlProperties;
 import com.simplefile.framework.security.filter.JwtAuthenticationTokenFilter;
 import com.simplefile.framework.security.handle.AuthenticationEntryPointImpl;
 import com.simplefile.framework.security.handle.LogoutSuccessHandlerImpl;
@@ -88,24 +84,14 @@ public class SecurityConfig
     }
 
     @Bean
-    public HttpFirewall customHttpFirewall() {
+    public WebSecurityCustomizer webSecurityCustomizer() {
         StrictHttpFirewall firewall = new StrictHttpFirewall();
-
-        // 使用 Arrays.asList 替代 List.of
-        firewall.setAllowedHttpMethods(
-                Arrays.asList(
-                        "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH",
-                        "PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK"
-                )
-        );
-
-        // 允许URL中的斜杠和点（WebDAV常用）
-        firewall.setAllowUrlEncodedSlash(true);
-        firewall.setAllowUrlEncodedPeriod(true);
-
-        return firewall;
+        firewall.setAllowedHttpMethods(Arrays.asList(
+                "HEAD", "DELETE", "POST", "GET", "OPTIONS", "PATCH", "PUT",
+                "PROPFIND", "PROPPATCH", "MKCOL", "MOVE", "COPY", "LOCK", "UNLOCK"
+        ));
+        return web -> web.httpFirewall(firewall);
     }
-
 
 
     /**
@@ -126,45 +112,36 @@ public class SecurityConfig
     @Bean
     protected SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception
     {
-        //httpSecurity
-        //        .csrf(csrf -> csrf.disable())
-        //        // 配置WebDAV路径的安全规则
-        //        //.authorizeRequests()
-        //        //.antMatchers("/system/webdav/**", "/DavWWWRoot/**").authenticated()
-        //        //.and()
-        //        .httpBasic()
-        //        .and()
-        //        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        //        .and()
-        //        .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-        //        .authorizeRequests((requests) -> {
-        //            permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
-        //            requests.antMatchers( "/system/webdav/**").permitAll()
-        //                    .anyRequest().authenticated();
-        //        });
-
-        // 配置其他路径的安全规则
-        httpSecurity
+        return httpSecurity
+                // CSRF禁用，因为不使用session
                 .csrf(csrf -> csrf.disable())
+                // 禁用HTTP响应标头
                 .headers((headersCustomizer) -> {
                     headersCustomizer.cacheControl(cache -> cache.disable()).frameOptions(options -> options.sameOrigin());
                 })
-                .cors().configurationSource(corsConfigurationSource()).and()
+                // 认证失败处理类
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                // 基于token，所以不需要session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeRequests((requests) -> {
+                // 注解标记允许匿名访问的url
+                .authorizeHttpRequests((requests) -> {
                     permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
-                    requests.antMatchers("/login", "/register", "/captchaImage","/simplefile/file/**", "/system/webdav/").permitAll()
+                    // 对于登录login 注册register 验证码captchaImage 允许匿名访问
+                    requests.antMatchers("/login","/system/webdav/**", "/register", "/captchaImage","/simplefile/file/**").permitAll()
+                            // 静态资源，可匿名访问
                             .antMatchers(HttpMethod.GET, "/", "/*.html", "/**/*.html", "/**/*.css", "/**/*.js", "/profile/**").permitAll()
                             .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/*/api-docs", "/druid/**").permitAll()
+                            // 除上面外的所有请求全部需要鉴权认证
                             .anyRequest().authenticated();
                 })
+                // 添加Logout filter
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler))
-                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
-                //.addFilterBefore(corsFilter, JwtAuthenticationTokenFilter.class)
-                //.addFilterBefore(corsFilter, LogoutFilter.class);
-
-        return httpSecurity.build();
+                // 添加JWT filter
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                // 添加CORS filter
+                .addFilterBefore(corsFilter, JwtAuthenticationTokenFilter.class)
+                .addFilterBefore(corsFilter, LogoutFilter.class)
+                .build();
     }
 
     /**
@@ -175,19 +152,4 @@ public class SecurityConfig
     {
         return new BCryptPasswordEncoder();
     }
-
-    private CorsConfigurationSource corsConfigurationSource() {
-        // 同上 CorsFilter 中的配置
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(false);
-        // 允许浏览器扩展程序的 origin
-        config.addAllowedOriginPattern("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.setMaxAge(1800L);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return (source);
-    }
-
 }
