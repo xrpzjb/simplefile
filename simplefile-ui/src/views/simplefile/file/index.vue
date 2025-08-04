@@ -47,7 +47,8 @@
       <!-- 页面头部额外部分，包含上传文件按钮 -->
       <template #extra>
         <div class="flex items-center">
-          <el-button type="primary" class="ml-2" @click="openUpload">上传文件</el-button>
+          <el-button type="primary" class="ml-2" @click="openUpload">上传<i class="el-icon-upload el-icon--right"></i></el-button>
+          <el-button class="ml-2" @click="refreshFile">刷新<i class="el-icon-refresh-right el-icon--right"></i></el-button>
         </div>
       </template>
     </el-page-header>
@@ -981,6 +982,11 @@ const uploadError = (file, uploadFiles) => {
 function openUpload() {
   uploadFileList.value = [];
   uploadDialogVisible.value = true;
+}
+
+// 刷新文件
+function refreshFile(){
+  getList();
 }
 
 /**************************  audio  *********************************/
